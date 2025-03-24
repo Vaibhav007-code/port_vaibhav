@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import '../styles/PostCreator.css';
 
 export default function PostCreator() {
-  const { posts, addPost, deletePost, darkMode } = useContext(AppContext);
+  const { addPost } = useContext(AppContext);
   const [content, setContent] = useState('');
   const [media, setMedia] = useState(null);
   const [mediaPreview, setMediaPreview] = useState('');
@@ -18,8 +18,9 @@ export default function PostCreator() {
       reader.onloadend = () => {
         setMediaPreview(reader.result);
         setMedia({
-          url: reader.result,
-          type: file.type
+          file,
+          type: file.type,
+          url: URL.createObjectURL(file)
         });
       };
       reader.readAsDataURL(file);
@@ -28,65 +29,44 @@ export default function PostCreator() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!media) return;
+    
+    if (!content.trim() && !media) {
+      alert('Please add text or media to create a post');
+      return;
+    }
 
     const newPost = {
       id: Date.now(),
       content,
-      media,
+      media: media ? {
+        type: media.type,
+        url: mediaPreview
+      } : null,
       timestamp: new Date().toISOString(),
       likes: 0,
       comments: []
     };
 
     addPost(newPost);
-    setContent('');
-    setMedia(null);
-    setMediaPreview('');
+    navigate('/admin');
   };
 
   return (
-    <div className={`post-creator-container ${darkMode ? 'dark' : ''}`}>
+    <div className="post-creator-container">
       <div className="create-post-modal">
         <div className="modal-header">
-          <h2>Create Post</h2>
-          <div className="header-controls">
-            <button 
-              className="close-button"
-              onClick={() => navigate('/admin')}
-            >
-              &times;
-            </button>
-          </div>
+          <h2>Create New Post</h2>
+          <button 
+            className="close-button"
+            onClick={() => navigate('/admin')}
+            aria-label="Close"
+          >
+            &times;
+          </button>
         </div>
 
-        <div className="modal-body">
+        <div className="modal-content">
           <div className="media-section">
-            {mediaPreview ? (
-              <div className="media-preview">
-                {media.type.startsWith('image') ? (
-                  <img src={mediaPreview} alt="Preview" />
-                ) : (
-                  <video src={mediaPreview} controls />
-                )}
-                <button
-                  className="change-media"
-                  onClick={() => fileInputRef.current.click()}
-                >
-                  Change Media
-                </button>
-              </div>
-            ) : (
-              <div 
-                className="media-upload"
-                onClick={() => fileInputRef.current.click()}
-              >
-                <div className="upload-prompt">
-                  <i className="fas fa-cloud-upload-alt"></i>
-                  <p>Click to upload photo/video</p>
-                </div>
-              </div>
-            )}
             <input
               type="file"
               ref={fileInputRef}
@@ -94,34 +74,49 @@ export default function PostCreator() {
               accept="image/*, video/*"
               hidden
             />
+            <button
+              type="button"
+              className="media-btn"
+              onClick={() => fileInputRef.current.click()}
+            >
+              {mediaPreview ? 'Change Media' : 'Add Media'}
+            </button>
+            
+            {mediaPreview && (
+              <div className="media-preview">
+                {media.type.startsWith('image') ? (
+                  <img src={mediaPreview} alt="Post preview" />
+                ) : (
+                  <video controls src={mediaPreview} />
+                )}
+                <button
+                  type="button"
+                  className="remove-media"
+                  onClick={() => {
+                    setMedia(null);
+                    setMediaPreview('');
+                  }}
+                >
+                  &times;
+                </button>
+              </div>
+            )}
           </div>
 
-          <div className="caption-section">
+          <form onSubmit={handleSubmit}>
             <textarea
-              placeholder="Write a caption..."
+              placeholder="Write your post..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="caption-input"
+              className="post-input"
+              rows="4"
             />
-          </div>
-        </div>
-
-        <div className="modal-footer">
-          <button 
-            type="button" 
-            className="cancel-button"
-            onClick={() => navigate('/admin')}
-          >
-            Cancel
-          </button>
-          <button 
-            type="submit" 
-            className="post-button"
-            onClick={handleSubmit}
-            disabled={!mediaPreview}
-          >
-            Post
-          </button>
+            <div className="modal-actions">
+              <button type="submit" className="post-button">
+                Post
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

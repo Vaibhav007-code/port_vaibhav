@@ -3,7 +3,7 @@ import { AppContext } from '../App';
 import '../styles/Projects.css';
 
 export default function Projects() {
-  const { projects, deleteProject, isAdmin } = useContext(AppContext);
+  const { projects } = useContext(AppContext);
 
   return (
     <div className="projects-page">
@@ -11,14 +11,6 @@ export default function Projects() {
       <div className="projects-grid">
         {projects.map((project) => (
           <div key={project.id} className="project-card">
-            {isAdmin && (
-              <button 
-                className="delete-project"
-                onClick={() => deleteProject(project.id)}
-              >
-                ×
-              </button>
-            )}
             {project.thumbnail && (
               <img 
                 src={project.thumbnail} 
