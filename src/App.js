@@ -19,7 +19,7 @@ export const AppContext = createContext();
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
-    return saved === 'true' ? true : false;
+    return saved === 'true';
   });
   const [messages, setMessages] = useState(() => JSON.parse(localStorage.getItem('messages')) || []);
   const [posts, setPosts] = useState(() => JSON.parse(localStorage.getItem('posts')) || []);
@@ -40,6 +40,25 @@ function App() {
   useEffect(() => localStorage.setItem('adminPassword', adminPassword), [adminPassword]);
   useEffect(() => localStorage.setItem('isAdmin', isAdmin), [isAdmin]);
 
+  // Project management functions
+  const addProject = (newProject) => {
+    setProjects(prev => [...prev, newProject]);
+  };
+
+  const deleteProject = (projectId) => {
+    setProjects(prev => prev.filter(project => project.id !== projectId));
+  };
+
+  // Post management functions
+  const addPost = (newPost) => {
+    setPosts(prev => [newPost, ...prev]);
+  };
+
+  const deletePost = (postId) => {
+    setPosts(prev => prev.filter(post => post.id !== postId));
+  };
+
+  // Auth functions
   const adminLogin = (password) => {
     if (password === adminPassword) {
       setIsAdmin(true);
@@ -52,20 +71,29 @@ function App() {
 
   return (
     <AppContext.Provider value={{
+      // Theme
       darkMode,
       setDarkMode,
+
+      // Messages
       messages,
+      addContactMessage: (msg) => setMessages(prev => [...prev, msg]),
+      deleteMessage: (index) => setMessages(prev => prev.filter((_, i) => i !== index)),
+
+      // Posts
       posts,
+      addPost,
+      deletePost,
+
+      // Projects
       projects,
+      addProject,
+      deleteProject,
+
+      // Admin
       adminPassword,
       setAdminPassword,
       isAdmin,
-      addContactMessage: (msg) => setMessages(prev => [...prev, msg]),
-      deleteMessage: (index) => setMessages(prev => prev.filter((_, i) => i !== index)),
-      addPost: (post) => setPosts(prev => [post, ...prev]),
-      deletePost: (id) => setPosts(prev => prev.filter(p => p.id !== id)),
-      addProject: (project) => setProjects(prev => [...prev, project]),
-      deleteProject: (id) => setProjects(prev => prev.filter(p => p.id !== id)),
       adminLogin,
       adminLogout
     }}>
