@@ -1,0 +1,104 @@
+:root {
+  --primary: #2a2a2a;
+  --accent: #646cff;
+  --background: #f8f9fa;
+  --glass: rgba(255, 255, 255, 0.95);
+  --text: #2a2a2a;
+  --nav-height: 80px;
+}
+
+.dark-mode {
+  --primary: #ffffff;
+  --accent: #a855f7;
+  --background: #0a0a1a;
+  --glass: rgba(12, 12, 24, 0.95);
+  --text: #ffffff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  transition: background 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
+
+.main-content {
+  margin-top: var(--nav-height);
+  padding: 4rem 5%;
+  min-height: calc(100vh - var(--nav-height));
+}
+
+/* Smooth Scroll Animation */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Glassmorphism Effect */
+.glass-card {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Grid System */
+.responsive-grid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/* Beautiful Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 2rem 5%;
+  }
+}
+:root {
+  /* Light Theme */
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --card-bg: #f8f9fa;
+  --border-color: #dee2e6;
+  --primary-color: #007bff;
+
+  /* Dark Theme */
+  --bg-color-dark: #1a1a1a;
+  --text-color-dark: #f8f9fa;
+  --card-bg-dark: #2d2d2d;
+  --border-color-dark: #404040;
+}
+
+.dark-mode {
+  --bg-color: var(--bg-color-dark);
+  --text-color: var(--text-color-dark);
+  --card-bg: var(--card-bg-dark);
+  --border-color: var(--border-color-dark);
+}
