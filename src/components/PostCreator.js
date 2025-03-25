@@ -1,4 +1,5 @@
-import { useState, useContext, useRef } from 'react';
+// PostCreator.js
+import React, { useState, useContext, useRef } from 'react';
 import { AppContext } from '../App';
 import { useNavigate } from 'react-router-dom';
 import '../styles/PostCreator.css';
@@ -8,47 +9,66 @@ export default function PostCreator() {
   const [content, setContent] = useState('');
   const [media, setMedia] = useState(null);
   const [mediaPreview, setMediaPreview] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
   const handleMediaChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Read the file as base64
       const reader = new FileReader();
       reader.onloadend = () => {
-        setMediaPreview(reader.result);
+        const base64String = reader.result; // This is the file data
         setMedia({
-          file,
+          file, // original file (optional)
           type: file.type,
-          url: URL.createObjectURL(file)
+          data: base64String, // base64 encoded string
         });
+        setMediaPreview(base64String);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = (e) => {
+  // Instead of uploading to Firebase storage, we simply return the base64 string.
+  const uploadMedia = async (mediaFile) => {
+    if (!mediaFile) return null;
+    // Here you could add further processing if needed.
+    return {
+      type: mediaFile.type,
+      url: media.data, // base64 string stored in state
+    };
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!content.trim() && !media) {
       alert('Please add text or media to create a post');
       return;
     }
-
-    const newPost = {
-      id: Date.now(),
-      content,
-      media: media ? {
-        type: media.type,
-        url: mediaPreview
-      } : null,
-      timestamp: new Date().toISOString(),
-      likes: 0,
-      comments: []
-    };
-
-    addPost(newPost);
-    navigate('/admin');
+    try {
+      setIsUploading(true);
+      const uploadedMedia = media ? await uploadMedia(media.file) : null;
+      const newPost = {
+        content,
+        media: uploadedMedia,
+        likes: 0,
+        comments: [],
+        date: Date.now(),
+        id: Date.now().toString(), // generate a simple id
+      };
+      await addPost(newPost);
+      setContent('');
+      setMedia(null);
+      setMediaPreview('');
+      navigate('/posts');
+    } catch (error) {
+      console.error('Failed to create post:', error);
+      alert('Failed to create post. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -58,7 +78,7 @@ export default function PostCreator() {
           <h2>Create New Post</h2>
           <button 
             className="close-button"
-            onClick={() => navigate('/admin')}
+            onClick={() => navigate('/posts')}
             aria-label="Close"
           >
             &times;
@@ -81,7 +101,6 @@ export default function PostCreator() {
             >
               {mediaPreview ? 'Change Media' : 'Add Media'}
             </button>
-            
             {mediaPreview && (
               <div className="media-preview">
                 {media.type.startsWith('image') ? (
@@ -112,8 +131,12 @@ export default function PostCreator() {
               rows="4"
             />
             <div className="modal-actions">
-              <button type="submit" className="post-button">
-                Post
+              <button 
+                type="submit" 
+                className="post-button" 
+                disabled={isUploading}
+              >
+                {isUploading ? 'Posting...' : 'Post'}
               </button>
             </div>
           </form>

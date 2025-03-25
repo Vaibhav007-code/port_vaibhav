@@ -1,104 +1,137 @@
-import { useState, createContext, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import Home from './pages/Home';
-import Posts from './pages/Posts';
-import Projects from './pages/Projects';
-import Contact from './pages/Contact';
-import AdminPanel from './components/AdminPanel';
-import AdminLogin from './components/AdminLogin';
-import PostCreator from './components/PostCreator';
-import ProjectCreator from './components/ProjectCreator';
-import Mailbox from './components/Mailbox';
-import Setup from './components/Setup';
-import './styles/Global.css';
+// App.js
+import React, { useState, useEffect, createContext } from "react";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import Home from "./pages/Home";
+import Posts from "./pages/Posts";
+import Projects from "./pages/Projects";
+import Contact from "./pages/Contact";
+import AdminPanel from "./components/AdminPanel";
+import AdminLogin from "./components/AdminLogin";
+import PostCreator from "./components/PostCreator";
+import ProjectCreator from "./components/ProjectCreator";
+import Mailbox from "./components/Mailbox";
+import Setup from "./components/Setup";
+import "./styles/Global.css";
+import { fetchData, updateData } from "./api"; // Your JSONBin API utility functions
 
 export const AppContext = createContext();
 
 function App() {
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode');
-    return saved === 'true';
+  const [darkMode, setDarkMode] = useState(() =>
+    localStorage.getItem("darkMode") === "true"
+  );
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [appData, setAppData] = useState({
+    posts: [],
+    projects: [],
+    adminPassword: null,
+    security: {}
   });
-  const [messages, setMessages] = useState(() => JSON.parse(localStorage.getItem('messages')) || []);
-  const [posts, setPosts] = useState(() => JSON.parse(localStorage.getItem('posts')) || []);
-  const [projects, setProjects] = useState(() => JSON.parse(localStorage.getItem('projects')) || []);
-  const [adminPassword, setAdminPassword] = useState(() => localStorage.getItem('adminPassword') || '');
-  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('isAdmin') === 'true');
 
-  // Dark mode effect
   useEffect(() => {
-    document.body.classList.toggle('dark-mode', darkMode);
-    localStorage.setItem('darkMode', darkMode);
-  }, [darkMode]);
+    const loadData = async () => {
+      try {
+        const data = await fetchData();
+        setAppData(data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Failed to load data:", error);
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
-  // Data persistence
-  useEffect(() => localStorage.setItem('messages', JSON.stringify(messages)), [messages]);
-  useEffect(() => localStorage.setItem('posts', JSON.stringify(posts)), [posts]);
-  useEffect(() => localStorage.setItem('projects', JSON.stringify(projects)), [projects]);
-  useEffect(() => localStorage.setItem('adminPassword', adminPassword), [adminPassword]);
-  useEffect(() => localStorage.setItem('isAdmin', isAdmin), [isAdmin]);
-
-  // Project management functions
-  const addProject = (newProject) => {
-    setProjects(prev => [...prev, newProject]);
+  const syncData = async (newData) => {
+    await updateData(newData);
+    setAppData(newData);
   };
 
-  const deleteProject = (projectId) => {
-    setProjects(prev => prev.filter(project => project.id !== projectId));
-  };
-
-  // Post management functions
-  const addPost = (newPost) => {
-    setPosts(prev => [newPost, ...prev]);
-  };
-
-  const deletePost = (postId) => {
-    setPosts(prev => prev.filter(post => post.id !== postId));
-  };
-
-  // Auth functions
-  const adminLogin = (password) => {
-    if (password === adminPassword) {
+  const handleAdminLogin = (password) => {
+    if (password === appData.adminPassword) {
       setIsAdmin(true);
+      localStorage.setItem("isAdmin", "true");
       return true;
     }
     return false;
   };
 
-  const adminLogout = () => setIsAdmin(false);
+  const handleAdminLogout = () => {
+    setIsAdmin(false);
+    localStorage.removeItem("isAdmin");
+  };
+
+  const addPost = async (post) => {
+    const newData = {
+      ...appData,
+      posts: [post, ...appData.posts]
+    };
+    await syncData(newData);
+  };
+
+  const deletePost = async (postId) => {
+    const newData = {
+      ...appData,
+      posts: appData.posts.filter((post) => post.id !== postId)
+    };
+    await syncData(newData);
+  };
+
+  const addProject = async (project) => {
+    const newData = {
+      ...appData,
+      projects: [project, ...appData.projects]
+    };
+    await syncData(newData);
+  };
+
+  const deleteProject = async (projectId) => {
+    const newData = {
+      ...appData,
+      projects: appData.projects.filter((project) => project.id !== projectId)
+    };
+    await syncData(newData);
+  };
+
+  const setAdminCredentials = async (password, security) => {
+    const newData = {
+      ...appData,
+      adminPassword: password,
+      security
+    };
+    await syncData(newData);
+  };
+
+  useEffect(() => {
+    document.body.classList.toggle("dark-mode", darkMode);
+    localStorage.setItem("darkMode", darkMode);
+  }, [darkMode]);
+
+  if (isLoading) return <div>Loading...</div>;
 
   return (
-    <AppContext.Provider value={{
-      // Theme
-      darkMode,
-      setDarkMode,
-
-      // Messages
-      messages,
-      addContactMessage: (msg) => setMessages(prev => [...prev, msg]),
-      deleteMessage: (index) => setMessages(prev => prev.filter((_, i) => i !== index)),
-
-      // Posts
-      posts,
-      addPost,
-      deletePost,
-
-      // Projects
-      projects,
-      addProject,
-      deleteProject,
-
-      // Admin
-      adminPassword,
-      setAdminPassword,
-      isAdmin,
-      adminLogin,
-      adminLogout
-    }}>
+    <AppContext.Provider
+      value={{
+        darkMode,
+        setDarkMode,
+        isAdmin,
+        adminLogout: handleAdminLogout,
+        posts: appData.posts,
+        projects: appData.projects,
+        addPost,
+        deletePost,
+        addProject,
+        deleteProject,
+        setAdminPassword: setAdminCredentials,
+        security: appData.security,
+        handleAdminLogin, // Function to check password
+      }}
+    >
       <Router>
-        <div className={`app ${darkMode ? 'dark-mode' : ''}`}>
+        <div className={`app ${darkMode ? "dark-mode" : ""}`}>
           <Navbar />
           <div className="main-content">
             <Routes>
@@ -107,13 +140,17 @@ function App() {
               <Route path="/projects" element={<Projects />} />
               <Route path="/contact" element={<Contact />} />
 
+              {/* Protected Admin Routes */}
               <Route path="/admin" element={isAdmin ? <AdminPanel /> : <Navigate to="/admin/login" />} />
               <Route path="/admin/posts" element={isAdmin ? <PostCreator /> : <Navigate to="/admin/login" />} />
               <Route path="/admin/projects" element={isAdmin ? <ProjectCreator /> : <Navigate to="/admin/login" />} />
               <Route path="/admin/mailbox" element={isAdmin ? <Mailbox /> : <Navigate to="/admin/login" />} />
 
-              <Route path="/admin/login" element={adminPassword ? <AdminLogin /> : <Navigate to="/setup" />} />
-              <Route path="/setup" element={!adminPassword ? <Setup /> : <Navigate to="/admin/login" />} />
+              {/* Authentication Routes */}
+              <Route path="/admin/login" element={<AdminLogin onLogin={handleAdminLogin} />} />
+              <Route path="/setup" element={!isAdmin ? <Setup /> : <Navigate to="/admin" />} />
+
+              {/* 404 Redirect */}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </div>

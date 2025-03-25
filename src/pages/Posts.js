@@ -1,17 +1,29 @@
-import { useContext } from 'react';
-import { AppContext } from '../App';
-import Post from '../components/Post';
-import '../styles/Posts.css';
+import React from 'react';
+import '../styles/Post.css';
 
-export default function Posts() {
-  const { posts } = useContext(AppContext);
+export default function Post({ post }) {
+  // Safely extract post details with fallbacks
+  const {
+    title = 'Untitled Post', 
+    content = 'No content available', 
+    date = 'Date not specified',
+    imageUrl = '/placeholder-image.jpg' // Add a placeholder image path
+  } = post || {};
 
   return (
-    <div className="posts-page">
-      <div className="posts-container">
-        {posts.map(post => (
-          <Post key={post.id} post={post} />
-        ))}
+    <div className="post-card">
+      <img 
+        src={imageUrl} 
+        alt={title} 
+        className="post-image" 
+        onError={(e) => {
+          e.target.src = '/placeholder-image.jpg'; // Fallback image
+        }}
+      />
+      <div className="post-content">
+        <h2 className="post-title">{title}</h2>
+        <p className="post-date">{date}</p>
+        <p className="post-excerpt">{content.substring(0, 200)}...</p>
       </div>
     </div>
   );

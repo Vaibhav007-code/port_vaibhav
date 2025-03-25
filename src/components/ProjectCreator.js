@@ -1,3 +1,4 @@
+// ProjectCreator.js
 import { useState, useContext } from 'react';
 import { AppContext } from '../App';
 import { useNavigate } from 'react-router-dom';
@@ -6,41 +7,71 @@ import '../styles/ProjectCreator.css';
 export default function ProjectCreator() {
   const { addProject } = useContext(AppContext);
   const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     name: '',
     link: '',
-    thumbnail: null
+    thumbnail: null,
   });
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Convert file to base64 string
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          thumbnail: reader.result // Store base64 string
+          thumbnail: {
+            file,
+            preview: reader.result,
+          },
         }));
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = (e) => {
+  // Instead of using Firebase storage, use the base64 string directly.
+  const uploadThumbnail = async (thumbnailFile) => {
+    if (!thumbnailFile) return null;
+    return reader => {
+      // In this demo, we already have the base64 data in formData.thumbnail.preview.
+      return formData.thumbnail.preview;
+    };
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.thumbnail) {
       alert('Please upload a thumbnail');
       return;
     }
-
-    const newProject = {
-      id: Date.now(),
-      ...formData,
-      timestamp: new Date().toISOString()
-    };
-    
-    addProject(newProject);
-    navigate('/projects');
+    try {
+      setIsUploading(true);
+      // Use the base64 thumbnail directly.
+      const thumbnailUrl = formData.thumbnail.preview;
+      const newProject = {
+        name: formData.name,
+        link: formData.link,
+        thumbnail: thumbnailUrl,
+        date: Date.now(),
+        id: Date.now().toString(),
+      };
+      await addProject(newProject);
+      setFormData({
+        name: '',
+        link: '',
+        thumbnail: null,
+      });
+      navigate('/projects');
+    } catch (error) {
+      console.error('Failed to create project:', error);
+      alert('Failed to create project. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -62,7 +93,7 @@ export default function ProjectCreator() {
             onChange={(e) => setFormData(prev => ({ ...prev, link: e.target.value }))}
             required
           />
-          
+
           <div className="thumbnail-upload">
             <input
               type="file"
@@ -73,15 +104,22 @@ export default function ProjectCreator() {
             />
             <label htmlFor="thumbnailInput" className="thumbnail-label">
               {formData.thumbnail ? (
-                <img src={formData.thumbnail} alt="Thumbnail preview" />
+                <img 
+                  src={formData.thumbnail.preview} 
+                  alt="Thumbnail preview" 
+                />
               ) : (
                 'Upload Thumbnail +'
               )}
             </label>
           </div>
-
-          <button type="submit" className="submit-button">
-            Add Project
+          
+          <button 
+            type="submit" 
+            className="submit-button"
+            disabled={isUploading}
+          >
+            {isUploading ? 'Adding Project...' : 'Add Project'}
           </button>
         </form>
       </div>
