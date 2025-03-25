@@ -1,16 +1,16 @@
 // ProjectCreator.js
-import { useState, useContext } from 'react';
-import { AppContext } from '../App';
-import { useNavigate } from 'react-router-dom';
-import '../styles/ProjectCreator.css';
+import { useState, useContext } from "react";
+import { AppContext } from "../App";
+import { useNavigate } from "react-router-dom";
+import "../styles/ProjectCreator.css";
 
 export default function ProjectCreator() {
   const { addProject } = useContext(AppContext);
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
-    name: '',
-    link: '',
+    name: "",
+    link: "",
     thumbnail: null,
   });
   const [isUploading, setIsUploading] = useState(false);
@@ -18,7 +18,6 @@ export default function ProjectCreator() {
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Convert file to base64 string
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData((prev) => ({
@@ -33,24 +32,14 @@ export default function ProjectCreator() {
     }
   };
 
-  // Instead of using Firebase storage, use the base64 string directly.
-  const uploadThumbnail = async (thumbnailFile) => {
-    if (!thumbnailFile) return null;
-    return reader => {
-      // In this demo, we already have the base64 data in formData.thumbnail.preview.
-      return formData.thumbnail.preview;
-    };
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.thumbnail) {
-      alert('Please upload a thumbnail');
+      alert("Please upload a thumbnail");
       return;
     }
     try {
       setIsUploading(true);
-      // Use the base64 thumbnail directly.
       const thumbnailUrl = formData.thumbnail.preview;
       const newProject = {
         name: formData.name,
@@ -61,14 +50,14 @@ export default function ProjectCreator() {
       };
       await addProject(newProject);
       setFormData({
-        name: '',
-        link: '',
+        name: "",
+        link: "",
         thumbnail: null,
       });
-      navigate('/projects');
+      navigate("/projects");
     } catch (error) {
-      console.error('Failed to create project:', error);
-      alert('Failed to create project. Please try again.');
+      console.error("Failed to create project:", error);
+      alert("Failed to create project. Please try again.");
     } finally {
       setIsUploading(false);
     }
@@ -83,14 +72,18 @@ export default function ProjectCreator() {
             type="text"
             placeholder="Project Name"
             value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, name: e.target.value }))
+            }
             required
           />
           <input
             type="url"
             placeholder="Project URL"
             value={formData.link}
-            onChange={(e) => setFormData(prev => ({ ...prev, link: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, link: e.target.value }))
+            }
             required
           />
 
@@ -104,22 +97,22 @@ export default function ProjectCreator() {
             />
             <label htmlFor="thumbnailInput" className="thumbnail-label">
               {formData.thumbnail ? (
-                <img 
-                  src={formData.thumbnail.preview} 
-                  alt="Thumbnail preview" 
+                <img
+                  src={formData.thumbnail.preview}
+                  alt="Thumbnail preview"
                 />
               ) : (
-                'Upload Thumbnail +'
+                "Upload Thumbnail +"
               )}
             </label>
           </div>
           
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="submit-button"
             disabled={isUploading}
           >
-            {isUploading ? 'Adding Project...' : 'Add Project'}
+            {isUploading ? "Adding Project..." : "Add Project"}
           </button>
         </form>
       </div>

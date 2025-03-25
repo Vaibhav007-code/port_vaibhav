@@ -127,7 +127,7 @@ function App() {
         deleteProject,
         setAdminPassword: setAdminCredentials,
         security: appData.security,
-        handleAdminLogin, // Function to check password
+        handleAdminLogin, // Provide the login function to AdminLogin
       }}
     >
       <Router>

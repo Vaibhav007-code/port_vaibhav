@@ -1,7 +1,7 @@
 // Projects.js
-import { useContext } from 'react'; 
-import { AppContext } from '../App'; 
-import '../styles/Projects.css';  
+import { useContext } from "react"; 
+import { AppContext } from "../App"; 
+import "../styles/Projects.css";  
 
 export default function Projects() {   
   const { projects } = useContext(AppContext);    

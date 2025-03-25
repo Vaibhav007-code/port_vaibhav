@@ -10,27 +10,22 @@ export default function AdminPanel() {
 
   return (
     <div className="admin-panel">
-      {/* Admin Header */}
       <div className="admin-header">
         <h1>Admin Dashboard</h1>
-        <button
-          onClick={() => {
-            adminLogout();
-            navigate("/");
-          }}
-        >
+        <button onClick={() => { 
+          adminLogout(); 
+          navigate('/');
+        }}>
           Logout
         </button>
       </div>
 
-      {/* Admin Navigation */}
       <div className="admin-nav">
         <Link to="/admin/posts">Create Post</Link>
         <Link to="/admin/projects">Create Project</Link>
         <Link to="/admin/mailbox">Mailbox</Link>
       </div>
 
-      {/* Admin Content */}
       <div className="admin-content">
         <div className="manage-section">
           <h2>Manage Existing Posts</h2>
@@ -49,6 +44,7 @@ export default function AdminPanel() {
             )}
           </div>
         </div>
+
         <div className="manage-section">
           <h2>Manage Existing Projects</h2>
           <div className="projects-list">
@@ -66,6 +62,7 @@ export default function AdminPanel() {
             )}
           </div>
         </div>
+
         <Outlet />
       </div>
     </div>

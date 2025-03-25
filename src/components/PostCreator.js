@@ -1,14 +1,14 @@
 // PostCreator.js
-import React, { useState, useContext, useRef } from 'react';
-import { AppContext } from '../App';
-import { useNavigate } from 'react-router-dom';
-import '../styles/PostCreator.css';
+import React, { useState, useContext, useRef } from "react";
+import { AppContext } from "../App";
+import { useNavigate } from "react-router-dom";
+import "../styles/PostCreator.css";
 
 export default function PostCreator() {
   const { addPost } = useContext(AppContext);
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState("");
   const [media, setMedia] = useState(null);
-  const [mediaPreview, setMediaPreview] = useState('');
+  const [mediaPreview, setMediaPreview] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
@@ -16,35 +16,32 @@ export default function PostCreator() {
   const handleMediaChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Read the file as base64
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result; // This is the file data
         setMedia({
-          file, // original file (optional)
+          file,
           type: file.type,
-          data: base64String, // base64 encoded string
+          data: reader.result, // Base64 data
         });
-        setMediaPreview(base64String);
+        setMediaPreview(reader.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Instead of uploading to Firebase storage, we simply return the base64 string.
   const uploadMedia = async (mediaFile) => {
     if (!mediaFile) return null;
-    // Here you could add further processing if needed.
+    // Directly return the Base64 string as the media URL
     return {
-      type: mediaFile.type,
-      url: media.data, // base64 string stored in state
+      type: media.type,
+      url: media.data,
     };
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!content.trim() && !media) {
-      alert('Please add text or media to create a post');
+      alert("Please add text or media to create a post");
       return;
     }
     try {
@@ -55,17 +52,17 @@ export default function PostCreator() {
         media: uploadedMedia,
         likes: 0,
         comments: [],
-        date: Date.now(),
-        id: Date.now().toString(), // generate a simple id
+        date: Date.now(), // Timestamp as a number
+        id: Date.now().toString(),
       };
       await addPost(newPost);
-      setContent('');
+      setContent("");
       setMedia(null);
-      setMediaPreview('');
-      navigate('/posts');
+      setMediaPreview("");
+      navigate("/posts");
     } catch (error) {
-      console.error('Failed to create post:', error);
-      alert('Failed to create post. Please try again.');
+      console.error("Failed to create post:", error);
+      alert("Failed to create post. Please try again.");
     } finally {
       setIsUploading(false);
     }
@@ -76,9 +73,9 @@ export default function PostCreator() {
       <div className="create-post-modal">
         <div className="modal-header">
           <h2>Create New Post</h2>
-          <button 
+          <button
             className="close-button"
-            onClick={() => navigate('/posts')}
+            onClick={() => navigate("/posts")}
             aria-label="Close"
           >
             &times;
@@ -99,11 +96,12 @@ export default function PostCreator() {
               className="media-btn"
               onClick={() => fileInputRef.current.click()}
             >
-              {mediaPreview ? 'Change Media' : 'Add Media'}
+              {mediaPreview ? "Change Media" : "Add Media"}
             </button>
+
             {mediaPreview && (
               <div className="media-preview">
-                {media.type.startsWith('image') ? (
+                {media.type.startsWith("image") ? (
                   <img src={mediaPreview} alt="Post preview" />
                 ) : (
                   <video controls src={mediaPreview} />
@@ -113,7 +111,7 @@ export default function PostCreator() {
                   className="remove-media"
                   onClick={() => {
                     setMedia(null);
-                    setMediaPreview('');
+                    setMediaPreview("");
                   }}
                 >
                   &times;
@@ -131,12 +129,12 @@ export default function PostCreator() {
               rows="4"
             />
             <div className="modal-actions">
-              <button 
-                type="submit" 
-                className="post-button" 
+              <button
+                type="submit"
+                className="post-button"
                 disabled={isUploading}
               >
-                {isUploading ? 'Posting...' : 'Post'}
+                {isUploading ? "Posting..." : "Post"}
               </button>
             </div>
           </form>
